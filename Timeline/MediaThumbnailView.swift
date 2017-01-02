@@ -40,15 +40,15 @@ class MediaThumbnailView: UIView {
         super.init(frame: frame)
         self.clipsToBounds = true
         imageView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
-        imageView.contentMode = .ScaleAspectFill
+        imageView.contentMode = .scaleAspectFill
         descriptionView.addArrangedSubview(titleLabel)
         descriptionView.addArrangedSubview(URLLabel)
-        descriptionView.axis = .Vertical
+        descriptionView.axis = .vertical
         baseView.addArrangedSubview(imageView)
         baseView.addArrangedSubview(descriptionView)
-        baseView.axis = .Horizontal
-        baseView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
-        baseView.backgroundColor = UIColor.blueColor()
+        baseView.axis = .horizontal
+        baseView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        baseView.backgroundColor = UIColor.blue
         self.addSubview(baseView)
     }
 

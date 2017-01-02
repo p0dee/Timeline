@@ -29,13 +29,13 @@ class TweetTableViewCell: UITableViewCell {
         // Initialization code
     }
 
-    override func setSelected(selected: Bool, animated: Bool) {
+    override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         // Configure the view for the selected state
     }
     
     //MARK:
-    static private func timestampStringWithDate(date: NSDate) -> String {
+    static private func timestampString(with date: Date) -> String {
         let interval = Int(-date.timeIntervalSinceNow)
         if interval > DayInSecs {
             return "\(interval / DayInSecs)d"
@@ -48,33 +48,33 @@ class TweetTableViewCell: UITableViewCell {
         }
     }
     
-    func setupWithTweet(tweet: Tweet) {
+    func setup(with tweet: Tweet) {
         messageLabel.text = tweet.text
         nameLabel.text = tweet.user?.name
         if let screenName = tweet.user?.screenName {
             screenNameLabel.text = "@" + screenName
         }
         if let date = tweet.date {
-            dateLabel.text = self.dynamicType.timestampStringWithDate(date)
+            dateLabel.text = type(of: self).timestampString(with: date)
         }
         retweetCountLabel.text = "Retweeted:\(tweet.retweetCount)"
         retweetCountLabel.textColor = tweet.retweeted ? UIColor.twitterRetweetOnColor() : UIColor.twitterOffStateColor()
         favoriteCountLabel.text = "Favorited:\(tweet.favoriteCount)"
         favoriteCountLabel.textColor = tweet.favorited ? UIColor.twitterFavoriteOnColor() : UIColor.twitterOffStateColor()
         if let url = tweet.user?.imageURL {
-            userIconImageView.setImageWithURL(url)
+            userIconImageView.setImageWithURL(with: url)
         }
-        mediaThumbsView.hidden = tweet.extendedEntities == nil
+        mediaThumbsView.isHidden = tweet.extendedEntities == nil
         for v in mediaThumbsView.arrangedSubviews {
             if let v = v as? MediaThumbnailView {
-                self.dynamicType.mediaThumbsPool.enqueue(v)
+                type(of: self).mediaThumbsPool.enqueue(object: v)
             }
             mediaThumbsView.removeArrangedSubview(v)
         }
         if let entities = tweet.extendedEntities {
             print("entities.count: ", entities.count)
             for e in entities {
-                guard let v = self.dynamicType.mediaThumbsPool.dequeue() else {
+                guard let v = type(of: self).mediaThumbsPool.dequeue() else {
                     break
                 }
                 if let mediaURL = e.mediaURL {

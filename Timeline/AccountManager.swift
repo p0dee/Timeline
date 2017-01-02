@@ -13,12 +13,12 @@ private let APIURLGetHomeTimeline = "https://api.twitter.com/1.1/statuses/home_t
 private let APIURLGetUserTimeline = "https://api.twitter.com/1.1/statuses/user_timeline.json"
 
 protocol AccountManagerDelegate {
-    func accountManagerSetupDidComplete(accountManager: AccountManager)
+    func accountManagerSetupDidComplete(_ accountManager: AccountManager)
 }
 
 class AccountManager {
     
-    typealias RequestCompletionHandler = (AnyObject?, NSError?) -> Void
+    typealias RequestCompletionHandler = (AnyObject?, Error?) -> Void
     private let accountStore = ACAccountStore()
     private(set) var account: ACAccount?
     private var viewController: UIViewController!
@@ -34,15 +34,15 @@ class AccountManager {
     }
     
     private func setup() {
-        let twitter = accountStore.accountTypeWithAccountTypeIdentifier(ACAccountTypeIdentifierTwitter)
-        accountStore.requestAccessToAccountsWithType(twitter, options: nil) { granted, error in
+        let twitter = accountStore.accountType(withAccountTypeIdentifier: ACAccountTypeIdentifierTwitter)
+        accountStore.requestAccessToAccounts(with: twitter, options: nil) { granted, error in
             guard granted && error == nil else {
                 //error
                 return
             }
-            let accounts = self.accountStore.accountsWithAccountType(twitter).filter({ $0 is ACAccount }) as! [ACAccount]
+            let accounts = self.accountStore.accounts(with: twitter).filter({ $0 is ACAccount }) as! [ACAccount]
             if accounts.count > 1 {
-                self.showAccountsSelectionActionSheetWithAccounts(accounts, onViewController: self.viewController)
+                self.showAccountsSelectionActionSheet(with: accounts, onViewController: self.viewController)
             } else {
                 self.account = accounts.first
                 self.delegate?.accountManagerSetupDidComplete(self)
@@ -50,53 +50,61 @@ class AccountManager {
         }
     }
     
-    private func showAccountsSelectionActionSheetWithAccounts(accounts: [ACAccount], onViewController vc: UIViewController) {
+    private func showAccountsSelectionActionSheet(with accounts: [ACAccount], onViewController vc: UIViewController) {
         guard accounts.count > 0 else {
             return
         }
-        let actionSheet = UIAlertController(title: "Select an account.", message: nil, preferredStyle: .ActionSheet)
+        let actionSheet = UIAlertController(title: "Select an account.", message: nil, preferredStyle: .actionSheet)
         for acnt in accounts {
-            let action = UIAlertAction(title: acnt.username, style: .Default, handler: { (action) -> Void in
+            let action = UIAlertAction(title: acnt.username, style: .default, handler: { (action) -> Void in
                 self.account = acnt
                 self.delegate?.accountManagerSetupDidComplete(self)
             })
             actionSheet.addAction(action)
         }
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            self.viewController.presentViewController(actionSheet, animated: true, completion: nil)
+        DispatchQueue.main.async(execute: { () -> Void in
+            self.viewController.present(actionSheet, animated: true, completion: nil)
         })
     }
     
-    func requestHomeTimeline(completion: RequestCompletionHandler) {
+    func requestHomeTimeline(completion: @escaping RequestCompletionHandler) {
         guard let account = account else {
             setup()
             return
         }
-        let request = AccountManager.GETRequestWithURLString(APIURLGetHomeTimeline, params: nil, account: account)
-        request.performRequestWithHandler({ (data, response, error) -> Void in
-            let data = try? NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)            
-            completion(data ?? nil, error)
+        let request = AccountManager.GETRequest(with: APIURLGetHomeTimeline, params: nil, account: account)
+        request?.perform(handler: { (data, response, error) -> Void in
+            guard let data = data else {
+                return
+            }
+            if let json = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as AnyObject {
+                completion(json, error)
+            }
         })
     }
     
-    func requestUserTimelineWithScreenName(screenName: String, completion: RequestCompletionHandler) {
+    func requestUserTimeline(with screenName: String, completion: @escaping RequestCompletionHandler) {
         guard let account = account else {
             setup()
             return
         }
         let params = [
-            "screen_name": screenName,
-        ]
-        let request = AccountManager.GETRequestWithURLString(APIURLGetUserTimeline, params: params, account: account)
-        request.performRequestWithHandler({ (data, response, error) -> Void in
-            let data = try? NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-            completion(data ?? nil, error)
+            "screen_name": screenName as AnyObject,
+        ] as [String : AnyObject]
+        let request = AccountManager.GETRequest(with: APIURLGetUserTimeline, params: params, account: account)
+        request?.perform(handler: { (data, response, error) -> Void in
+            guard let data = data else {
+                return
+            }
+            if let json = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as AnyObject {
+                completion(json, error)
+            }
         })
     }
     
-    private static func GETRequestWithURLString(urlString: String, params: Dictionary<String, AnyObject>?, account: ACAccount) -> SLRequest {
-        let req = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: .GET, URL: NSURL(string: urlString), parameters: params)
-        req.account = account
+    private static func GETRequest(with urlString: String, params: Dictionary<String, AnyObject>?, account: ACAccount) -> SLRequest? {
+        let req = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: .GET, url: URL(string: urlString), parameters: params)
+        req?.account = account
         return req
     }
 

@@ -8,8 +8,8 @@
 
 import Foundation
 
-infix operator ?= {}
-func ?= <T>(inout lhs: T, rhs: T?) {
+infix operator ?=
+func ?= <T>(lhs: inout T, rhs: T?) {
     if let rhs = rhs {
         lhs = rhs
     }
@@ -30,40 +30,40 @@ extension Bool {
 
 typealias Source = [String: AnyObject]
 
-private extension Dictionary where Key: StringLiteralConvertible {
+private extension Dictionary where Key: ExpressibleByStringLiteral {
     
-    func string(param: ParameterType) -> String? {
+    func string(_ param: ParameterType) -> String? {
         if let key = param.key() as? Key {
             return self[key] as? String
         }
         return nil
     }
     
-    func integer(param: ParameterType) -> Int? {
+    func integer(_ param: ParameterType) -> Int? {
         if let key = param.key() as? Key {
             return self[key] as? Int
         }
         return nil
     }
     
-    func bool(param: ParameterType) -> Bool? {
+    func bool(_ param: ParameterType) -> Bool? {
         if let str = self.string(param) {
             return Bool(str)
         }
         if let int = self.integer(param) {
-            return Bool(int)
+            return int != 0
         }
         return nil
     }
     
-    func source(param: ParameterType) -> Source? {
+    func source(_ param: ParameterType) -> Source? {
         if let key = param.key() as? Key {
             return self[key] as? Source
         }
         return nil
     }
     
-    func url(param: ParameterType) -> NSURL? {
+    func url(_ param: ParameterType) -> NSURL? {
         if let str = self.string(param) {
             return NSURL(string: str)
         }
@@ -73,7 +73,7 @@ private extension Dictionary where Key: StringLiteralConvertible {
 }
 
 struct Tweet {
-    var date: NSDate?
+    var date: Date?
     var extendedEntities: [ExtendedEntity]?
     var favorited: Bool = false
     var favoriteCount: Int = 0
@@ -94,7 +94,7 @@ struct ExtendedEntity {
         case Photo
         func description() -> String {
             switch self {
-            case Photo:
+            case .Photo:
                 return "photo"
             }
         }
@@ -140,27 +140,27 @@ class TweetConverter {
         }
     }
     
-    static private var df_: NSDateFormatter? //cache
-    static private var dateFormatter: NSDateFormatter {
+    static private var df_: DateFormatter? //cache
+    static private var dateFormatter: DateFormatter {
         if let df = df_ {
             return df
         } else {
-            let df = NSDateFormatter()
+            let df = DateFormatter()
             df.dateFormat = "eee MMM dd HH:mm:ss ZZZZ yyyy"
             df_ = df
             return df
         }
     }
     
-    static func tweetsWithSources(sources: [Source]) -> [Tweet] {
+    static func tweets(with sources: [Source]) -> [Tweet] {
         var ret = [Tweet]()
         for src in sources {
-            ret.append(self.tweetWithSource(src))
+            ret.append(self.tweet(with: src))
         }
         return ret
     }
     
-    static func tweetWithSource(source: Source) -> Tweet {
+    static func tweet(with source: Source) -> Tweet {
         var src = source
         if let retsrc = source["retweeted_status"] as? Source {
             src = retsrc
@@ -168,33 +168,33 @@ class TweetConverter {
         var tweet = Tweet()
         tweet.text = src.string(TweetParameterType.Text)
         if let str = src.string(TweetParameterType.CreatedDate) {
-            tweet.date = self.dateWithCreatedAtString(str)
+            tweet.date = self.date(with: str)
         }
         tweet.favoriteCount ?= src.integer(TweetParameterType.FavoriteCount)
         tweet.favorited ?= src.bool(TweetParameterType.Favorited)
         tweet.retweetCount ?= src.integer(TweetParameterType.RetweetCount)
         tweet.retweeted ?= src.bool(TweetParameterType.Retweeted)
         if let dic = src.source(TweetParameterType.User) {
-            tweet.user = UserConverter.userWithSource(dic)
+            tweet.user = UserConverter.user(with: dic)
         }
-        tweet.extendedEntities = extendedEntities(source)
+        tweet.extendedEntities = extendedEntities(with: source)
         return tweet
     }
     
-    static func extendedEntities(tweetSource: Source) -> [ExtendedEntity]? {
+    static func extendedEntities(with tweetSource: Source) -> [ExtendedEntity]? {
         if let ee = tweetSource["extended_entities"] as? Source, let media = ee["media"] as? [Source] {
             print("media.count", media.count)
             var ret = [ExtendedEntity]()
             for m in media {
-                ret.append(ExtendedEntityConverter.extendedEntityWithSource(m))
+                ret.append(ExtendedEntityConverter.extendedEntity(with: m))
             }
             return ret
         }
         return nil
     }
     
-    static func dateWithCreatedAtString(string: String) -> NSDate? {
-        return self.dateFormatter.dateFromString(string)
+    static func date(with string: String) -> Date? {
+        return self.dateFormatter.date(from: string)
     }
     
 }
@@ -215,7 +215,7 @@ class ExtendedEntityConverter {
         }
     }
     
-    static func extendedEntityWithSource(source: Source) -> ExtendedEntity {
+    static func extendedEntity(with source: Source) -> ExtendedEntity {
         var entity = ExtendedEntity()
         entity.mediaURL = source.url(ExtendedEntityParameterType.MediaURL)
         if let str = source.string(ExtendedEntityParameterType.MediaType) {
@@ -242,7 +242,7 @@ class UserConverter {
         }
     }
     
-    static func userWithSource(source: Source) -> User {
+    static func user(with source: Source) -> User {
         var user = User()
         user.screenName = source.string(UserParameterType.ScreenName)
         user.name = source.string(UserParameterType.Name)

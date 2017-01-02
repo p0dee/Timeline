@@ -15,29 +15,29 @@ class Pool<T> {
     private var itemCount: Int = 0
     private let maxItemCount: Int
     private let factoryCallback: ItemFactoryCallback
-    private let queue = dispatch_queue_create("com.p0dee.PoolQueue", DISPATCH_QUEUE_SERIAL)
-    private let semaphore: dispatch_semaphore_t
+    private let queue = DispatchQueue(label: "com.p0dee.PoolQueue")
+    private let semaphore: DispatchSemaphore
     
-    init(maxItemCount: Int, factoryCallback: ItemFactoryCallback) {
+    init(maxItemCount: Int, factoryCallback: @escaping ItemFactoryCallback) {
         self.maxItemCount = maxItemCount
         self.factoryCallback = factoryCallback
-        semaphore = dispatch_semaphore_create(self.maxItemCount)
+        semaphore = DispatchSemaphore(value: self.maxItemCount)
     }
     
     func enqueue(object: T) {
-        dispatch_async(queue) { () -> Void in
+        queue.async() { () -> Void in
             self.items.append(object)
-            dispatch_semaphore_signal(self.semaphore)
+            self.semaphore.signal()
         }
     }
     
     func dequeue() -> T? {
         var ret: T?
-        if dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER) == 0 {
-            dispatch_sync(queue) { () -> Void in
+        if semaphore.wait(timeout: DispatchTime.distantFuture) == .success {
+            queue.sync() { () -> Void in
                 if self.items.count == 0 && self.itemCount < self.maxItemCount {
                     ret = self.factoryCallback()
-                    self.itemCount++
+                    self.itemCount += 1
                 } else {
                     ret = self.items.removeLast()
                 }

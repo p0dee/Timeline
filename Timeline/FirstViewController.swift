@@ -18,7 +18,7 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        tableView.registerNib(UINib.init(nibName: "TweetTableViewCell", bundle: nil), forCellReuseIdentifier: "CellIdentifier")
+        tableView.register(UINib.init(nibName: "TweetTableViewCell", bundle: nil), forCellReuseIdentifier: "CellIdentifier")
         tableView.contentInset = UIEdgeInsetsMake(20, 0, 49, 0)
         tableView.scrollIndicatorInsets = tableView.contentInset
         tableView.estimatedRowHeight = 60.0
@@ -26,7 +26,7 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
         accountManager?.delegate = self
     }
         
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
 
@@ -36,26 +36,27 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
     }
     
     //MARK:
-    func accountManagerSetupDidComplete(accountManager: AccountManager) {
+    func accountManagerSetupDidComplete(_ accountManager: AccountManager) {
         accountManager.requestHomeTimeline { (data, error) -> Void in
             if let arr = data as? Array<Dictionary<String, AnyObject>> {
-                let tweets = TweetConverter.tweetsWithSources(arr)
+                let tweets = TweetConverter.tweets(with: arr)
                 self.tweets = tweets
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    self.tableView.reloadData()
-                })
+                
+//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+//                    self.tableView.reloadData()
+//                })
             }
         }
         return        
         guard let account = accountManager.account else {
             return
         }
-        accountManager.requestUserTimelineWithScreenName(account.username) { (data, error) -> Void in
+        accountManager.requestUserTimeline(with: account.username) { (data, error) -> Void in
             print(data)
             if let arr = data as? Array<Dictionary<String, AnyObject>> {
-                let tweets = TweetConverter.tweetsWithSources(arr)
+                let tweets = TweetConverter.tweets(with: arr)
                 self.tweets = tweets
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                DispatchQueue.main.async(execute: { () -> Void in
                     self.tableView.reloadData()
                 })
             }
@@ -63,17 +64,17 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
     }
     
     //MARK:
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1;
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tweets.count;
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(CellIdentifier, forIndexPath: indexPath) as! TweetTableViewCell
-        cell.setupWithTweet(tweets[indexPath.row])
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier, for: indexPath) as! TweetTableViewCell
+        cell.setup(with: tweets[indexPath.row])
         cell.layoutSubviews()
         return cell
     }
