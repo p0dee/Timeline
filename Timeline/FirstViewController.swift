@@ -47,20 +47,6 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
                 })
             }
         }
-        return        
-        guard let account = accountManager.account else {
-            return
-        }
-        accountManager.requestUserTimeline(with: account.username) { (data, error) -> Void in
-            print(data)
-            if let arr = data as? Array<Dictionary<String, AnyObject>> {
-                let tweets = TweetConverter.tweets(with: arr)
-                self.tweets = tweets
-                DispatchQueue.main.async(execute: { () -> Void in
-                    self.tableView.reloadData()
-                })
-            }
-        }
     }
     
     //MARK:
