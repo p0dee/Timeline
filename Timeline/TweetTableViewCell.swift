@@ -62,7 +62,7 @@ class TweetTableViewCell: UITableViewCell {
         favoriteCountLabel.text = "Favorited:\(tweet.favoriteCount)"
         favoriteCountLabel.textColor = tweet.favorited ? UIColor.twitterFavoriteOnColor() : UIColor.twitterOffStateColor()
         if let url = tweet.user?.imageURL {
-            userIconImageView.setImageWithURL(with: url)
+            userIconImageView.setImageWith(url)
         }
         mediaThumbsView.isHidden = tweet.extendedEntities == nil
         for v in mediaThumbsView.arrangedSubviews {
@@ -78,7 +78,7 @@ class TweetTableViewCell: UITableViewCell {
                     break
                 }
                 if let mediaURL = e.mediaURL {
-                    v.imageView.setImageWithURL(mediaURL)
+                    v.imageView.setImageWith(mediaURL)
                 }
                 v.backgroundColor = UIColor(white: 0.0, alpha: 0.1)
                 v.layer.cornerRadius = 5.0
