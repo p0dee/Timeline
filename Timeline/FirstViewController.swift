@@ -42,9 +42,9 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
                 let tweets = TweetConverter.tweets(with: arr)
                 self.tweets = tweets
                 
-//                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-//                    self.tableView.reloadData()
-//                })
+                DispatchQueue.main.async(execute: { () -> Void in
+                    self.tableView.reloadData()
+                })
             }
         }
         return        
