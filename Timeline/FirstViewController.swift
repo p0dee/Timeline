@@ -19,7 +19,7 @@ class FirstViewController: UITableViewController, AccountManagerDelegate {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         tableView.register(UINib.init(nibName: "TweetTableViewCell", bundle: nil), forCellReuseIdentifier: "CellIdentifier")
-        tableView.contentInset = UIEdgeInsetsMake(20, 0, 49, 0)
+        tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0)
         tableView.scrollIndicatorInsets = tableView.contentInset
         tableView.estimatedRowHeight = 60.0
         accountManager = AccountManager(viewController: self)
