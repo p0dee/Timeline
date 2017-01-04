@@ -63,9 +63,9 @@ private extension Dictionary where Key: ExpressibleByStringLiteral {
         return nil
     }
     
-    func url(_ param: ParameterType) -> NSURL? {
+    func url(_ param: ParameterType) -> URL? {
         if let str = self.string(param) {
-            return NSURL(string: str)
+            return URL(string: str)
         }
         return nil
     }
@@ -84,7 +84,7 @@ struct Tweet {
 }
 
 struct User {
-    var imageURL: NSURL?
+    var imageURL: URL?
     var name: String?
     var screenName: String?
 }
@@ -107,9 +107,9 @@ struct ExtendedEntity {
             }
         }
     }
-    var mediaURL: NSURL?
+    var mediaURL: URL?
     var type: MediaType?
-    var URL: NSURL?
+    var URL: URL?
 }
 
 protocol ParameterType {
