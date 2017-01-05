@@ -91,17 +91,17 @@ struct User {
 
 struct ExtendedEntity {
     enum MediaType {
-        case Photo
+        case photo
         func description() -> String {
             switch self {
-            case .Photo:
+            case .photo:
                 return "photo"
             }
         }
         init?(_ string: String) {
             switch string {
-            case MediaType.Photo.description():
-                self = .Photo
+            case MediaType.photo.description():
+                self = .photo
             default:
                 return nil
             }
@@ -109,7 +109,7 @@ struct ExtendedEntity {
     }
     var mediaURL: URL?
     var type: MediaType?
-    var URL: URL?
+    var url: URL?
 }
 
 protocol ParameterType {
@@ -119,22 +119,22 @@ protocol ParameterType {
 class TweetConverter {
     
     enum TweetParameterType: ParameterType {
-        case CreatedDate, FavoriteCount, Favorited, RetweetCount, Retweeted, Text, User
+        case createdDate, favoriteCount, favorited, retweetCount, retweeted, text, user
         func key() -> String {
             switch self {
-            case .CreatedDate:
+            case .createdDate:
                 return "created_at"
-            case .FavoriteCount:
+            case .favoriteCount:
                 return "favorite_count"
-            case .Favorited:
+            case .favorited:
                 return "favorited"
-            case .RetweetCount:
+            case .retweetCount:
                 return "retweet_count"
-            case .Retweeted:
+            case .retweeted:
                 return "retweeted"
-            case .Text:
+            case .text:
                 return "text"
-            case .User:
+            case .user:
                 return "user"
             }
         }
@@ -166,15 +166,15 @@ class TweetConverter {
             src = retsrc
         }
         var tweet = Tweet()
-        tweet.text = src.string(TweetParameterType.Text)
-        if let str = src.string(TweetParameterType.CreatedDate) {
+        tweet.text = src.string(TweetParameterType.text)
+        if let str = src.string(TweetParameterType.createdDate) {
             tweet.date = self.date(with: str)
         }
-        tweet.favoriteCount ?= src.integer(TweetParameterType.FavoriteCount)
-        tweet.favorited ?= src.bool(TweetParameterType.Favorited)
-        tweet.retweetCount ?= src.integer(TweetParameterType.RetweetCount)
-        tweet.retweeted ?= src.bool(TweetParameterType.Retweeted)
-        if let dic = src.source(TweetParameterType.User) {
+        tweet.favoriteCount ?= src.integer(TweetParameterType.favoriteCount)
+        tweet.favorited ?= src.bool(TweetParameterType.favorited)
+        tweet.retweetCount ?= src.integer(TweetParameterType.retweetCount)
+        tweet.retweeted ?= src.bool(TweetParameterType.retweeted)
+        if let dic = src.source(TweetParameterType.user) {
             tweet.user = UserConverter.user(with: dic)
         }
         tweet.extendedEntities = extendedEntities(with: source)
@@ -202,14 +202,14 @@ class TweetConverter {
 class ExtendedEntityConverter {
     
     enum ExtendedEntityParameterType: ParameterType {
-        case MediaURL, MediaType, URL
+        case mediaURL, mediaType, url
         func key() -> String {
             switch self {
-            case .MediaURL:
+            case .mediaURL:
                 return "media_url"
-            case .MediaType:
+            case .mediaType:
                 return "type"
-            case .URL:
+            case .url:
                 return "url"
             }
         }
@@ -217,8 +217,8 @@ class ExtendedEntityConverter {
     
     static func extendedEntity(with source: Source) -> ExtendedEntity {
         var entity = ExtendedEntity()
-        entity.mediaURL = source.url(ExtendedEntityParameterType.MediaURL)
-        if let str = source.string(ExtendedEntityParameterType.MediaType) {
+        entity.mediaURL = source.url(ExtendedEntityParameterType.mediaURL)
+        if let str = source.string(ExtendedEntityParameterType.mediaType) {
             entity.type = ExtendedEntity.MediaType(str)
         }
         return entity
@@ -229,14 +229,14 @@ class ExtendedEntityConverter {
 class UserConverter {
     
     enum UserParameterType: ParameterType {
-        case Name, ProfileImageURL, ScreenName
+        case name, profileImageURL, screenName
         func key() -> String {
             switch self {
-            case .Name:
+            case .name:
                 return "name"
-            case .ProfileImageURL:
+            case .profileImageURL:
                 return "profile_image_url"
-            case .ScreenName:
+            case .screenName:
                 return "screen_name"
             }
         }
@@ -244,9 +244,9 @@ class UserConverter {
     
     static func user(with source: Source) -> User {
         var user = User()
-        user.screenName = source.string(UserParameterType.ScreenName)
-        user.name = source.string(UserParameterType.Name)
-        user.imageURL = source.url(UserParameterType.ProfileImageURL)
+        user.screenName = source.string(UserParameterType.screenName)
+        user.name = source.string(UserParameterType.name)
+        user.imageURL = source.url(UserParameterType.profileImageURL)
         return user
     }
     

@@ -16,7 +16,7 @@ class MediaThumbnailView: UIView {
     private let descriptionView = UIStackView()
     let imageView = UIImageView()
     private let titleLabel = UILabel()
-    private let URLLabel = UILabel()
+    private let urlLabel = UILabel()
     
     var title: String? {
         get {
@@ -29,10 +29,10 @@ class MediaThumbnailView: UIView {
     
     var URLString: String? {
         get {
-            return URLLabel.text
+            return urlLabel.text
         }
         set {
-            URLLabel.text = newValue
+            urlLabel.text = newValue
         }
     }
     
@@ -42,7 +42,7 @@ class MediaThumbnailView: UIView {
         imageView.backgroundColor = UIColor(white: 0.9, alpha: 1.0)
         imageView.contentMode = .scaleAspectFill
         descriptionView.addArrangedSubview(titleLabel)
-        descriptionView.addArrangedSubview(URLLabel)
+        descriptionView.addArrangedSubview(urlLabel)
         descriptionView.axis = .vertical
         baseView.addArrangedSubview(imageView)
         baseView.addArrangedSubview(descriptionView)
